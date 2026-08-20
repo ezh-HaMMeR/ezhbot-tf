@@ -1,0 +1,131 @@
+===============================================================================
+                           ezHBot v1.0b
+                     Headless ezQuake Client
+===============================================================================
+
+DESCRIPTION
+-------------------------------------------------------------------------------
+
+ezHBot is a lightweight, fully headless modification of the ezQuake client
+(based on version 3.6.9), designed to run in server environments
+without X11/Wayland, graphics cards, or audio drivers.
+
+Purpose:
+
+  * Viewing demos to record a complete qconsole.log.
+  * Automated tasks and server monitoring.
+  * Running in VPS and GUI-less containers.
+
+===============================================================================
+TECHNICAL IMPLEMENTATION
+===============================================================================
+
+The original ezQuake is strictly tied to a graphics subsystem.
+
+ezHBot implements the following:
+
+  [OK] Graphics renderer fully removed (RENDERER_NULL)
+  [OK] Renderer calls stubbed out
+  [OK] Lightmaps generation disabled
+  [OK] Missing models substitution implemented
+  [OK] Crashes on custom model requests eliminated
+
+===============================================================================
+SYSTEM REQUIREMENTS
+===============================================================================
+
+OS:
+  * Ubuntu 20.04+
+  * Debian 11+
+  * CentOS/RHEL 8+
+
+Architecture:
+  * x86_64
+
+Dependencies:
+  libcurl4
+  glibc
+
+===============================================================================
+QUICK START
+===============================================================================
+
+Directory structure:
+
+  /path/to/ezhbot/
+  |
+  +-- ezquake-linux-x86_64
+  |
+  +-- id1/
+  |   +-- pak0.pak
+  |   +-- pak1.pak
+  |
+  +-- fortress/
+  |
+  +-- qw/
+  |   +-- autoexec.cfg
+  |   +-- qconsole.log
+  |
+  +-- qwproxy/
+      +-- qwfwd
+      +-- qwfwd.cfg
+
+===============================================================================
+BOT CONFIGURATION
+===============================================================================
+
+File: qw/autoexec.cfg
+
+  name "HeadlessBot"
+  spectator 1
+  cl_net_clientport 0
+
+  setinfo prx <PROXY_IP>:<PROXY_PORT>
+  connect <SERVER_IP>:<SERVER_PORT>
+
+===============================================================================
+LAUNCHING
+===============================================================================
+
+Launching the proxy:
+
+  cd /path/to/ezhbot/qwproxy/
+  ./qwfwd -ip <SERVER_IP> -port <SERVER_PORT> +exec qwfwd.cfg &
+
+Launching the bot:
+
+  cd /path/to/ezhbot/
+  ./ezquake-linux-x86_64 -nolan -nomouse -nosound -condebug &
+
+===============================================================================
+TROUBLESHOOTING
+===============================================================================
+
+[!] Bot does not connect to the server
+
+    Check the autoexec.cfg settings.
+    Make sure the -noautoexec parameter is not being used.
+
+[!] status=203/EXEC
+
+    Check execution permissions:
+      chmod +x ezquake-linux-x86_64
+      chmod +x qwfwd
+
+[!] status=217/USER
+
+    The specified user does not exist in the system.
+
+===============================================================================
+LICENSE
+===============================================================================
+
+GNU GPL v2
+
+Based on ezQuake 3.6.9 (https://ezquake.com/ , https://github.com/QW-Group/ezquake-source)
+
+Author: ezhHaMMer
+
+Special thanks to:
+  * QuakeWorld Community
+  * Google Gemini
