@@ -15,7 +15,7 @@ jobs:
     name: Linux x86_64 headless
     runs-on: ubuntu-latest
     container:
-      image: debian:testing
+      image: debian:12
 
     steps:
       - name: Install build dependencies
@@ -60,6 +60,13 @@ jobs:
             echo 'Invalid zero Git version metadata in Linux client' >&2
             exit 1
           fi
+
+          max_glibc="$(strings "$binary" | sed -n 's/^GLIBC_\([0-9][0-9.]*\)$/\1/p' | sort -V | tail -n 1)"
+          if [ -z "$max_glibc" ] || [ "$(printf '%s\n' '2.36' "$max_glibc" | sort -V | tail -n 1)" != '2.36' ]; then
+            echo "Unsupported GLIBC requirement: ${max_glibc:-unknown} (maximum allowed: 2.36)" >&2
+            exit 1
+          fi
+          printf 'Maximum GLIBC requirement: %s\n' "$max_glibc" | tee -a binary-info.txt
 
           mkdir package
           install -m 755 "$binary" package/ezquake-linux-x86_64
