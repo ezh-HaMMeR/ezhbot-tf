@@ -61,6 +61,12 @@ void Sys_ActiveAppChanged (void);
 #include "r_renderer.h"
 #include "r_program.h"
 
+#if defined(RENDERER_NULL) && (defined(__GNUC__) || defined(__clang__))
+#define VID_HEADLESS_UNUSED __attribute__((unused))
+#else
+#define VID_HEADLESS_UNUSED
+#endif
+
 SDL_GLContext GLM_SDL_CreateContext(SDL_Window* window);
 SDL_GLContext GLC_SDL_CreateContext(SDL_Window* window);
 
@@ -1004,7 +1010,7 @@ static int VID_SDL_InitSubSystem(void)
 
 // This is called during video initialisation & vid_restart, but not vid_reload
 // Do not include any cvars here that should take effect without full restart
-static void VID_RegisterLatchCvars(void)
+static void VID_HEADLESS_UNUSED VID_RegisterLatchCvars(void)
 {
 	Cvar_SetCurrentGroup(CVAR_GROUP_VIDEO);
 
@@ -1383,7 +1389,7 @@ static void VID_SetWindowResolution(void)
 	SDL_SetWindowMinimumSize(sdl_window, 320, 240);
 }
 
-static void VID_SDL_Init(void)
+static void VID_HEADLESS_UNUSED VID_SDL_Init(void)
 {
 	int flags;
 	
@@ -1696,7 +1702,7 @@ void VID_Restore (void)
 	SDL_RaiseWindow(sdl_window);
 }
 
-static void VID_ParseCmdLine(void)
+static void VID_HEADLESS_UNUSED VID_ParseCmdLine(void)
 {
 	int i, w = 0, h = 0, display = 0;
 
