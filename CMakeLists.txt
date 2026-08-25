@@ -85,8 +85,8 @@ else()
             -Werror=strict-prototypes
             -Werror=old-style-definition
 
-            $<$<CONFIG:Release>:-Werror=unused-function>
-            $<$<CONFIG:Release>:-Werror=unused-variable>
+            $<$<AND:$<CONFIG:Release>,$<OR:$<BOOL:${RENDERER_MODERN_OPENGL}>,$<BOOL:${RENDERER_CLASSIC_OPENGL}>>>:-Werror=unused-function>
+            $<$<AND:$<CONFIG:Release>,$<OR:$<BOOL:${RENDERER_MODERN_OPENGL}>,$<BOOL:${RENDERER_CLASSIC_OPENGL}>>>:-Werror=unused-variable>
     )
 
     check_c_compiler_flag("-Wstrlcpy-strlcat-size" HAS_STRLCPY_STRLCAT_SIZE)
