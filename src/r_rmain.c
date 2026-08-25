@@ -79,7 +79,6 @@ void SCR_SetupDamageIndicators(void);
 
 extern msurface_t *alphachain;
 
-texture_t *r_notexture_mip = NULL;
 refdef2_t r_refdef2;                          // screen size info
 refdef_t  r_refdef;                           // screen size info
 entity_t  r_worldentity;

@@ -583,6 +583,7 @@ typedef struct model_s {
 //============================================================================
 
 void	Mod_Init (void);
+void	Mod_InitFallbackTexture(void);
 void	Mod_ClearAll (void);
 model_t *Mod_ForName (const char *name, qbool crash);
 void	*Mod_Extradata (model_t *mod); // handles caching

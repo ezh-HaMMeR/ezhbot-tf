@@ -52,20 +52,51 @@ qbool Mod_LoadExternalTexture(model_t* loadmodel, texture_t *tx, int mode, int b
 
 model_t* Mod_FindName(const char *name);
 
+static texture_t* Mod_FallbackTexture(model_t* mod, int texinfo, int miptex)
+{
+	Mod_InitFallbackTexture();
+	if (!r_notexture_mip) {
+		Host_Error("Mod_LoadTexinfo(%s): texinfo %d miptex %d has no texture and the fallback texture is unavailable",
+			mod->name, texinfo, miptex);
+		return NULL;
+	}
+
+	return r_notexture_mip;
+}
+
 static void SetTextureFlags(model_t* mod, msurface_t* out, int surfnum)
 {
+	texture_t* texture;
+	int texinfo;
+
+	if (!out->texinfo) {
+		Host_Error("SetTextureFlags(%s): surface %d has no texinfo", mod->name, surfnum);
+		return;
+	}
+
+	texinfo = (int)(out->texinfo - mod->texinfo);
+	texture = out->texinfo->texture;
+	if (!texture) {
+		texture = Mod_FallbackTexture(mod, texinfo, out->texinfo->miptex);
+		if (!texture) {
+			return;
+		}
+		out->texinfo->texture = texture;
+		out->texinfo->flags = 0;
+	}
+
 	out->texinfo->surfaces++;
 
 	// set the drawing flags flag
 	// sky, turb and alpha should be mutually exclusive
-	if (Mod_IsSkyTextureName(mod, out->texinfo->texture->name)) {	// sky
+	if (Mod_IsSkyTextureName(mod, texture->name)) {	// sky
 		out->flags |= (SURF_DRAWSKY | SURF_DRAWTILED);
 		R_SkySurfacesBuildPolys(out);	// build gl polys
 		out->texinfo->skippable = false;
 		return;
 	}
 
-	if (Mod_IsTurbTextureName(mod, out->texinfo->texture->name)) {	// turbulent
+	if (Mod_IsTurbTextureName(mod, texture->name)) {	// turbulent
 		out->flags |= SURF_DRAWTURB;
 		out->texinfo->skippable = false;
 
@@ -73,16 +104,16 @@ static void SetTextureFlags(model_t* mod, msurface_t* out, int surfnum)
 		if (out->texinfo->flags & TEX_SPECIAL) {
 			out->flags |= SURF_DRAWTILED;
 		} else {
-			out->texinfo->texture->isLitTurb = true;
+			texture->isLitTurb = true;
 		}
 		R_TurbSurfacesSubdivide(out);	// cut up polygon for warps
 		return;
 	}
 
-	if (Mod_IsAlphaTextureName(mod, out->texinfo->texture->name)) {
+	if (Mod_IsAlphaTextureName(mod, texture->name)) {
 		out->flags |= SURF_DRAWALPHA;
 		out->texinfo->skippable = false;
-		out->texinfo->texture->isAlphaTested = true;
+		texture->isAlphaTested = true;
 	}
 }
 
@@ -1012,22 +1043,28 @@ static void Mod_LoadTexinfo(model_t* loadmodel, lump_t* l, byte* mod_base)
 		// Skip texture unless surface flags say otherwise
 		out->skippable = out->flags & TEX_SPECIAL;
 
-		if (!loadmodel->textures) {
-			out->texture = r_notexture_mip;	// checkerboard texture
-			out->flags = 0;
+		if (out->miptex < 0) {
+			Host_Error("Mod_LoadTexinfo(%s): texinfo %d miptex %d < 0", loadmodel->name, i, out->miptex);
+			return;
 		}
-		else {
-			if (out->miptex >= loadmodel->numtextures) {
-				Host_Error("Mod_LoadTexinfo: %d miptex %d >= loadmodel->numtextures", i, out->miptex);
-			}
-			if (out->miptex < 0) {
-				Host_Error("Mod_LoadTexinfo: %d miptex %d < 0", i, out->miptex);
-			}
-			out->texture = loadmodel->textures[out->miptex];
+		if (out->miptex >= loadmodel->numtextures) {
+			Host_Error("Mod_LoadTexinfo(%s): texinfo %d miptex %d >= numtextures %d",
+				loadmodel->name, i, out->miptex, loadmodel->numtextures);
+			return;
+		}
+		if (!loadmodel->textures) {
+			Host_Error("Mod_LoadTexinfo(%s): texinfo %d miptex %d has no texture table",
+				loadmodel->name, i, out->miptex);
+			return;
+		}
+
+		out->texture = loadmodel->textures[out->miptex];
+		if (!out->texture) {
+			out->texture = Mod_FallbackTexture(loadmodel, i, out->miptex);
 			if (!out->texture) {
-				out->texture = r_notexture_mip; // texture not found
-				out->flags = 0;
+				return;
 			}
+			out->flags = 0;
 		}
 	}
 }

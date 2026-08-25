@@ -35,6 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 model_t	*loadmodel;
 char	loadname[32];	// for hunk tags
+texture_t *r_notexture_mip = NULL;
 
 static mpic_t simpleitem_textures[MOD_NUMBER_HINTS][MAX_SIMPLE_TEXTURES];
 
@@ -49,9 +50,42 @@ byte	mod_novis[MAX_MAP_LEAFS/8];
 model_t	mod_known[MAX_MODELS];
 int		mod_numknown;
 
+void Mod_InitFallbackTexture(void)
+{
+	int x, y, m;
+	byte *dest;
+
+	if (r_notexture_mip) {
+		return;
+	}
+
+	// CPU-side checkerboard used by BSP texinfo with a valid but missing miptex.
+	r_notexture_mip = (texture_t *)Hunk_AllocName(sizeof(texture_t) + 16 * 16 + 8 * 8 + 4 * 4 + 2 * 2, "notexture");
+	if (!r_notexture_mip) {
+		return;
+	}
+
+	strlcpy(r_notexture_mip->name, "notexture", sizeof(r_notexture_mip->name));
+	r_notexture_mip->width = r_notexture_mip->height = 16;
+	r_notexture_mip->offsets[0] = sizeof(texture_t);
+	r_notexture_mip->offsets[1] = r_notexture_mip->offsets[0] + 16 * 16;
+	r_notexture_mip->offsets[2] = r_notexture_mip->offsets[1] + 8 * 8;
+	r_notexture_mip->offsets[3] = r_notexture_mip->offsets[2] + 4 * 4;
+
+	for (m = 0; m < 4; m++) {
+		dest = (byte *)r_notexture_mip + r_notexture_mip->offsets[m];
+		for (y = 0; y < (16 >> m); y++) {
+			for (x = 0; x < (16 >> m); x++) {
+				*dest++ = ((y < (8 >> m)) ^ (x < (8 >> m))) ? 0 : 0x0e;
+			}
+		}
+	}
+}
+
 void Mod_Init(void)
 {
 	memset(mod_novis, 0xff, sizeof(mod_novis));
+	Mod_InitFallbackTexture();
 }
 
 //Caches the data if needed
