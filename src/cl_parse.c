@@ -132,7 +132,7 @@ char *svc_strings[] = {
 	"NEW PROTOCOL",
 	"NEW PROTOCOL",
 	"NEW PROTOCOL",
-	"NEW PROTOCOL",
+	"svc_updatetfinfo",
 	"NEW PROTOCOL",
 	"NEW PROTOCOL",
 	"NEW PROTOCOL",
@@ -3910,6 +3910,29 @@ void CL_ParseServerMessage (void)
 					if (i >= MAX_CLIENTS)
 						Host_Error("CL_ParseServerMessage: svc_updatepl > MAX_CLIENTS");
 					cl.players[i].pl = MSG_ReadByte();
+					break;
+				}
+			case svc_updatetfinfo:
+				{
+					int player;
+					int field;
+					int value;
+
+					if (!cls.mvdplayback) {
+						Host_Error("CL_ParseServerMessage: svc_updatetfinfo without MVD playback");
+					}
+
+					player = MSG_ReadLong();
+					field = MSG_ReadLong();
+					value = MSG_ReadLong();
+
+					if (msg_badread) {
+						Host_Error("CL_ParseServerMessage: truncated svc_updatetfinfo");
+					}
+
+					(void)player;
+					(void)field;
+					(void)value;
 					break;
 				}
 			case svc_updateentertime:

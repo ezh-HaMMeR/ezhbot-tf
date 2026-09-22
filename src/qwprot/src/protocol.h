@@ -228,6 +228,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define svc_updatepl			53		// [byte] [byte]
 #define svc_nails2				54		// [byte] num [52 bits] nxyzpy 8 12 12 12 4 8
 										// mvdsv extended svcs (for mvd playback)
+#define svc_updatetfinfo		58		// [long] player [long] field [long] value
 #ifdef FTE_PEXT_MODELDBL
 # define	svc_fte_modellistshort	60	// [strings]
 #endif // FTE_PEXT_MODELDBL
